@@ -5,7 +5,16 @@ def receivepiece():
 	for i in xrange(4):
 		line=raw_input()
 		bg+=line
-	return bg,bg.index(' ')
+	s = bg.index(' ')
+	bg = filt(bg)
+	bg = bg[:s]+' '+bg[s+1:]
+	return bg,s
+def receivetarget():
+	bg = ''
+	for i in xrange(4):
+		line=raw_input()
+		bg+=line
+	return bg
 
 def filt(config):
 	state = ''
@@ -13,6 +22,7 @@ def filt(config):
 		if config[i]==' ':state+='.'
 		elif background[i]==config[i]:state+='.'
 		else:state+='x'
+	return state
 
 def hozop(p,start,shift):
 	m,y = start%4,start/4
@@ -32,16 +42,48 @@ def flip(p):
 
 def vertop(p,start,shift):
 	start = (start%4)*4+start/4
-	p,start= flip(hozop(flip(p),start,shift))
+	a,start=hozop(flip(p),start,shift)
+	if a==False:return a,-1
+	p = flip(a)
 	return p,(start%4)*4+start/4
 
-p,start = receivepiece()
 
+r = [1,2,3,-1,-2,-3]
 def dfs(p,start):
-	d=deque((p,start,0))
+	d=deque()
+	d.append((p,start,0))
+	visited = {}
+	solved = False
+	visited[p] = True
 	while len(d)>0:
-		p,s,depth=d.popleft()
-		p2,s2=hozop(p,s,1)
-		if p2!=False:
-			if 
-			d.push((p2,s2,depth+1))
+		if solved:return
+		m = d.popleft()
+		p,s,depth=m
+		for i in r:
+			p2,s2=hozop(p,s,i)
+			if p2!=False and p2 not in visited:
+				if filt(p2)==target:
+					print depth+1
+					solved = True
+					break
+				d.append((p2,s2,depth+1))
+				visited[p2] = True
+			p2,s2=vertop(p,s,i)
+			if p2!=False and p2 not in visited:
+				if filt(p2)==target:
+					print depth+1
+					solved = True
+					break
+				d.append((p2,s2,depth+1))
+				visited[p2] = True
+			#print d
+	print 'Impossible.'
+#try:
+if True:
+	while True:
+		p,start = receivepiece()
+		raw_input()
+		target = receivetarget()
+		raw_input()
+		dfs(p,start)
+#except:pass
