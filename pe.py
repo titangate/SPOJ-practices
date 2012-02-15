@@ -25,19 +25,22 @@ def flip(p):
 
 def expand(p):
 	transp = flip(p)
+	print transp
 	n = p.find(' ')
+	
 	r = set()
 	x,y = n%4,n/4
+	tn = x*4+y
 	# tip 
 	r.add(p[:y*4]+' '+p[y*4:n]+p[n+1:])
 	r.add(p[:n]+p[n+1:y*4+4]+' '+p[y*4+4:])
 	
-	r.add(convert(transp[:y*4]+' '+transp[y*4:n]+transp[n+1:]))
-	r.add(convert(transp[:n]+transp[n+1:y*4+4]+' '+transp[y*4+4:]))
-	
+	r.add(flip(transp[:x*4]+' '+transp[x*4:tn]+transp[tn+1:]))
+	r.add(flip(transp[:tn]+transp[tn+1:x*4+4]+' '+transp[x*4+4:]))
+	#return r
 	# move along outer ring
 	if x in [0,3]:
-		for i in (0,x):
+		for i in (0,x+1):
 			# move to the right
 			r.add(p[:n-i]+' '+p[n-i+1:n]+p[n+1:])
 		for i in (x,4):
