@@ -1,38 +1,21 @@
 from collections import deque
 background = 'xx..xx....xx..xx'	
-def receivepiece():
-	bg = ''
-	for i in xrange(4):
-		line=raw_input()
-		bg+=line
-	s = bg.index(' ')
-	bg = filt(bg)
-	bg = bg[:s]+' '+bg[s+1:]
-	return bg,s
-def receivetarget():
-	bg = ''
-	for i in xrange(4):
-		line=raw_input()
-		bg+=line
-	return bg
+def receive():
+	return raw_input()[:4]+raw_input()[:4]+raw_input()[:4]+raw_input()[:4]+raw_input()[:0]
 
-def filt(config):
-	state = ''
-	for i in xrange(16):
-		if config[i]==' ':state+='.'
-		elif background[i]==config[i]:state+='.'
-		else:state+='x'
-	return state
+def convert(puzz):
+    ret = ""
+    for i in range(len(puzz)):
+        if puzz[i] == ' ': ret += ' '
+        elif i in [0, 1, 4, 5, 10, 11, 14, 15]:
+            if puzz[i] == 'x': ret += '.'
+            else: ret += 'x'
+        else:
+            if puzz[i] == 'x': ret += 'x'
+            else: ret += '.'
+    return ret
 
-def hozop(p,start,shift):
-	m,y = start%4,start/4
-	if m+shift>3 or m+shift<0:return False,-1
-	if shift<0:
-		start = start + shift
-		shift = -shift
-	
-	if (y==1 or y==2) and shift<3:return False,-1
-	return p[:start]+p[start+1:start+shift+1]+p[start]+p[start+shift+1:],start
+
 def flip(p):
 	l=''
 	for i in xrange(4):
@@ -40,50 +23,68 @@ def flip(p):
 		l+=x
 	return l
 
-def vertop(p,start,shift):
-	start = (start%4)*4+start/4
-	a,start=hozop(flip(p),start,shift)
-	if a==False:return a,-1
-	p = flip(a)
-	return p,(start%4)*4+start/4
-
-
+def expand(p):
+	transp = flip(p)
+	n = p.find(' ')
+	r = set()
+	x,y = n%4,n/4
+	# tip 
+	r.add(p[:y*4]+' '+p[y*4:n]+p[n+1:])
+	r.add(p[:n]+p[n+1:y*4+4]+' '+p[y*4+4:])
+	
+	r.add(convert(transp[:y*4]+' '+transp[y*4:n]+transp[n+1:]))
+	r.add(convert(transp[:n]+transp[n+1:y*4+4]+' '+transp[y*4+4:]))
+	
+	# move along outer ring
+	if x in [0,3]:
+		for i in (0,x):
+			# move to the right
+			r.add(p[:n-i]+' '+p[n-i+1:n]+p[n+1:])
+		for i in (x,4):
+			# to the left
+			r.add(p[:n-i]+p[n-i+1:n]+' '+p[n+1:])
+	return r
 r = [1,2,3,-1,-2,-3]
-def dfs(p,start):
+def dfs(p,target):
 	d=deque()
-	d.append((p,start,0))
+	d.append((p,0))
 	visited = {}
 	solved = False
 	visited[p] = True
 	while len(d)>0:
 		if solved:return
 		m = d.popleft()
-		p,s,depth=m
+		p,depth=m
 		for i in r:
-			p2,s2=hozop(p,s,i)
+			p2=hozop(p,i)
 			if p2!=False and p2 not in visited:
-				if filt(p2)==target:
+				if p2 in target:
 					print depth+1
 					solved = True
 					break
-				d.append((p2,s2,depth+1))
+				d.append((p2,depth+1))
 				visited[p2] = True
-			p2,s2=vertop(p,s,i)
+			p2=vertop(p,i)
 			if p2!=False and p2 not in visited:
-				if filt(p2)==target:
+				if p2 in target:
 					print depth+1
 					solved = True
 					break
-				d.append((p2,s2,depth+1))
+				d.append((p2,depth+1))
 				visited[p2] = True
 			#print d
 	print 'Impossible.'
 #try:
 if True:
 	while True:
-		p,start = receivepiece()
-		raw_input()
-		target = receivetarget()
-		raw_input()
-		dfs(p,start)
+		p = convert(receive())
+		target = list(convert(receive()))
+		t = []
+		for i in xrange(16):
+			if target[i]=='.':
+				ori = target[i]
+				target[i]=' '
+				t.append(''.join(target))
+				target[i] = ori
+		print expand(p),p
 #except:pass
